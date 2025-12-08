@@ -7,8 +7,10 @@ import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from "@angu
 import { toSignal } from "@angular/core/rxjs-interop";
 import { NoteModel } from "./note.model";
 import { CardComponent } from "../../card/card.component";
-import { Subscription } from "rxjs";
+import { Subscription, firstValueFrom } from "rxjs";
 import { filter, first } from "rxjs/operators";
+import { SortNotesPipe } from "../../directives/sort-notes.pipe";
+import { ConfirmDeleteModalComponent } from "../../components/confirm-delete-modal/confirm-delete-modal.component";
 
 @Component({
   selector: 'app-subject',
@@ -17,7 +19,9 @@ import { filter, first } from "rxjs/operators";
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
-    CardComponent
+    CardComponent,
+    SortNotesPipe,
+    ConfirmDeleteModalComponent
   ],
   templateUrl: './subject.component.html',
   styleUrls: ['./subject.component.scss']
@@ -31,26 +35,30 @@ export class SubjectComponent implements OnDestroy, OnInit {
   private notesSubscription?: Subscription;
   private queryParamsSubscription?: Subscription;
 
-  // Selected subject
   selectedSubject = signal<SubjectModel | null>(null);
   
-  // Modals
   isSubjectModalOpen = signal(false);
   isNoteModalOpen = signal(false);
+  isDeleteConfirmModalOpen = signal(false);
   
-  // Note modal state
   isEditMode = signal(false);
   selectedNote = signal<NoteModel | null>(null);
+  noteToDelete = signal<string | null>(null);
+  noteToDeleteTitle = signal<string>('');
 
-  // Forms
+  isSubjectMenuOpen = signal(false);
+  isSubjectEditMode = signal(false);
+  subjectToDelete = signal<string | null>(null);
+  subjectToDeleteName = signal<string>('');
+
   subjectForm = this.fb.nonNullable.group({
-    name: ['', [Validators.required, Validators.minLength(1)]],
-    subjectType: ['', [Validators.required, Validators.minLength(1)]]
+    name: ['', [Validators.required, Validators.minLength(1), Validators.maxLength(100)]],
+    subjectType: ['', [Validators.required, Validators.minLength(1), Validators.maxLength(50)]]
   });
 
   noteForm = this.fb.nonNullable.group({
-    title: ['', [Validators.required, Validators.minLength(1)]],
-    content: ['', [Validators.required]]
+    title: ['', [Validators.required, Validators.minLength(1), Validators.maxLength(200)]],
+    content: ['', [Validators.required, Validators.maxLength(5000)]]
   });
 
   readonly subjects = toSignal(this.subjectService.getSubjects(), {
@@ -60,13 +68,11 @@ export class SubjectComponent implements OnDestroy, OnInit {
   notes = signal<NoteModel[]>([]);
 
   ngOnInit() {
-    // Check for subjectId in query params first
     this.queryParamsSubscription = this.route.queryParams.subscribe(params => {
       if (!params['subjectId']) return;
       
       const subjectId = params['subjectId'];
       
-      // Wait for subjects to load, then find and select the subject
       this.subjectService.getSubjects().pipe(
         filter(subjects => subjects.length > 0),
         first()
@@ -74,10 +80,8 @@ export class SubjectComponent implements OnDestroy, OnInit {
         const subject = subjects.find(s => s.id === subjectId);
         
         if (subject) {
-          // Use setTimeout to ensure view is ready
           setTimeout(() => {
             this.selectSubject(subject);
-            // Clear query params after selection
             this.router.navigate([], {
               relativeTo: this.route,
               queryParams: {},
@@ -89,27 +93,98 @@ export class SubjectComponent implements OnDestroy, OnInit {
     });
   }
 
-  // Subject methods
   openSubjectModal() {
+    this.isSubjectEditMode.set(false);
     this.subjectForm.reset();
     this.isSubjectModalOpen.set(true);
   }
 
   closeSubjectModal() {
     this.isSubjectModalOpen.set(false);
+    this.isSubjectEditMode.set(false);
     this.subjectForm.reset();
   }
 
-  async addSubject() {
+  openEditSubjectModal() {
+    const subject = this.selectedSubject();
+    if (!subject) return;
+
+    this.isSubjectEditMode.set(true);
+    this.subjectForm.patchValue({
+      name: subject.name,
+      subjectType: subject.subjectType
+    });
+    this.isSubjectModalOpen.set(true);
+    this.closeSubjectMenu();
+  }
+
+  async saveSubject() {
     if (this.subjectForm.invalid) return;
 
     const formValue = this.subjectForm.getRawValue();
-    await this.subjectService.addSubject({
-      name: formValue.name.trim(),
-      subjectType: formValue.subjectType.trim()
-    });
+    
+    try {
+      if (this.isSubjectEditMode() && this.selectedSubject()?.id) {
+        await this.subjectService.updateSubject(this.selectedSubject()!.id!, {
+          name: formValue.name.trim(),
+          subjectType: formValue.subjectType.trim()
+        });
+        const updatedSubjects = await firstValueFrom(this.subjectService.getSubjects().pipe(first()));
+        if (updatedSubjects) {
+          const updated = updatedSubjects.find(s => s.id === this.selectedSubject()?.id);
+          if (updated) {
+            this.selectedSubject.set(updated);
+          }
+        }
+      } else {
+        await this.subjectService.addSubject({
+          name: formValue.name.trim(),
+          subjectType: formValue.subjectType.trim()
+        });
+      }
+      this.closeSubjectModal();
+    } catch (error) {
+      console.error('Error saving subject:', error);
+      alert(error instanceof Error ? error.message : 'Failed to save subject. Please try again.');
+    }
+  }
 
-    this.closeSubjectModal();
+  async addSubject() {
+    await this.saveSubject();
+  }
+
+  toggleSubjectMenu() {
+    this.isSubjectMenuOpen.update(value => !value);
+  }
+
+  closeSubjectMenu() {
+    this.isSubjectMenuOpen.set(false);
+  }
+
+  onDeleteSubject() {
+    const subject = this.selectedSubject();
+    if (!subject || !subject.id) return;
+
+    this.subjectToDelete.set(subject.id);
+    this.subjectToDeleteName.set(subject.name);
+    this.isDeleteConfirmModalOpen.set(true);
+    this.closeSubjectMenu();
+  }
+
+  async confirmDeleteSubject() {
+    const subjectId = this.subjectToDelete();
+    if (!subjectId) return;
+
+    try {
+      await this.subjectService.deleteSubject(subjectId);
+      this.selectedSubject.set(null);
+      this.notes.set([]);
+      this.closeDeleteConfirmModal();
+    } catch (error) {
+      console.error('Error deleting subject:', error);
+      alert(error instanceof Error ? error.message : 'Failed to delete subject. Please try again.');
+      this.closeDeleteConfirmModal();
+    }
   }
 
   selectSubject(subject: SubjectModel) {
@@ -135,7 +210,6 @@ export class SubjectComponent implements OnDestroy, OnInit {
     }
   }
 
-  // Note methods
   openNoteModal(mode: 'create' | 'edit', note?: NoteModel) {
     if (mode === 'edit' && note) {
       this.isEditMode.set(true);
@@ -179,13 +253,14 @@ export class SubjectComponent implements OnDestroy, OnInit {
       }
       this.loadNotes(subjectId);
       this.closeNoteModal();
-    } catch (err) {
-      console.error('Błąd podczas zapisu notatki:', err);
+    } catch (error) {
+      console.error('Error saving note:', error);
+      alert(error instanceof Error ? error.message : 'Failed to save note. Please try again.');
     }
   }
 
   async deleteNote(noteId: string) {
-    if (!this.selectedSubject() || !confirm('Czy na pewno chcesz usunąć tę notatkę?')) return;
+    if (!this.selectedSubject()) return;
 
     try {
       await this.subjectService.deleteNote(this.selectedSubject()!.id!, noteId);
@@ -199,7 +274,29 @@ export class SubjectComponent implements OnDestroy, OnInit {
     this.openNoteModal('edit', note);
   }
 
-  onDeleteNote(noteId: string) {
-    this.deleteNote(noteId);
+  onDeleteNote(note: NoteModel) {
+    this.noteToDelete.set(note.id!);
+    this.noteToDeleteTitle.set(note.title);
+    this.isDeleteConfirmModalOpen.set(true);
+  }
+
+  confirmDelete(): void {
+    if (this.noteToDelete()) {
+      const noteId = this.noteToDelete();
+      if (noteId) {
+        this.deleteNote(noteId);
+        this.closeDeleteConfirmModal();
+      }
+    } else if (this.subjectToDelete()) {
+      this.confirmDeleteSubject();
+    }
+  }
+
+  closeDeleteConfirmModal(): void {
+    this.isDeleteConfirmModalOpen.set(false);
+    this.noteToDelete.set(null);
+    this.noteToDeleteTitle.set('');
+    this.subjectToDelete.set(null);
+    this.subjectToDeleteName.set('');
   }
 }

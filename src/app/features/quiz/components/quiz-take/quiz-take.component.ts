@@ -9,7 +9,7 @@ import { Subscription, interval } from 'rxjs';
 
 interface QuizAnswer {
   questionId: string;
-  selectedAnswers: string[]; // array of answer IDs
+  selectedAnswers: string[];
 }
 
 @Component({
@@ -33,12 +33,10 @@ export class QuizTakeComponent implements OnInit, OnDestroy {
   allQuestions = signal<QuestionModel[]>([]);
   quizQuestions = signal<QuestionModel[]>([]);
   
-  // Quiz configuration
   numberOfQuestions = signal(5);
-  duration = signal(5); // in minutes
+  duration = signal(5);
   
-  // Quiz state
-  timeRemaining = signal(0); // in seconds
+  timeRemaining = signal(0);
   currentQuestionIndex = signal(0);
   answers = signal<QuizAnswer[]>([]);
   isQuizFinished = signal(false);
@@ -90,12 +88,11 @@ export class QuizTakeComponent implements OnInit, OnDestroy {
       this.allQuestions.set(questions);
       
       if (questions.length === 0) {
-        alert('Brak pytań dla tego przedmiotu');
+        alert('No questions for this subject');
         this.router.navigate(['/quiz', subjectId]);
         return;
       }
 
-      // Randomize and select questions
       const numQuestions = Math.min(this.numberOfQuestions(), questions.length);
       const shuffled = [...questions].sort(() => Math.random() - 0.5);
       const selected = shuffled.slice(0, numQuestions);
@@ -103,13 +100,11 @@ export class QuizTakeComponent implements OnInit, OnDestroy {
       this.quizQuestions.set(selected);
       this.totalQuestions.set(selected.length);
       
-      // Initialize answers array
       this.answers.set(selected.map(q => ({
         questionId: q.id!,
         selectedAnswers: []
       })));
 
-      // Start timer
       this.startTimer();
     });
   }
@@ -123,7 +118,6 @@ export class QuizTakeComponent implements OnInit, OnDestroy {
       if (remaining > 0) {
         this.timeRemaining.set(remaining - 1);
       } else {
-        // Time's up - auto-finish quiz
         this.finishQuiz();
       }
     });
@@ -149,10 +143,8 @@ export class QuizTakeComponent implements OnInit, OnDestroy {
     const answer = currentAnswers[answerIndex];
 
     if (question.type === 'single') {
-      // Single choice - replace selection
       answer.selectedAnswers = [answerId];
     } else {
-      // Multiple choice - toggle selection
       const selectedIndex = answer.selectedAnswers.indexOf(answerId);
       if (selectedIndex > -1) {
         answer.selectedAnswers.splice(selectedIndex, 1);
@@ -195,12 +187,10 @@ export class QuizTakeComponent implements OnInit, OnDestroy {
   finishQuiz() {
     if (this.isQuizFinished()) return;
 
-    // Stop timer
     if (this.timerSubscription) {
       this.timerSubscription.unsubscribe();
     }
 
-    // Calculate score
     let correct = 0;
     this.quizQuestions().forEach(question => {
       const userAnswer = this.answers().find(a => a.questionId === question.id);
@@ -226,7 +216,7 @@ export class QuizTakeComponent implements OnInit, OnDestroy {
 
   exitQuiz() {
     if (!this.isQuizFinished()) {
-      if (!confirm('Czy na pewno chcesz zakończyć quiz? Postęp nie zostanie zapisany.')) {
+      if (!confirm('Are you sure you want to exit the quiz? The progress will not be saved.')) {
         return;
       }
     }
@@ -262,14 +252,13 @@ export class QuizTakeComponent implements OnInit, OnDestroy {
           .filter(a => userAnswer.selectedAnswers.includes(a.id))
           .map(a => a.text)
           .join(', ')
-      : 'Brak odpowiedzi';
+      : 'No answers';
 
     const correctAnswersText = correctAnswers.map(a => a.text).join(', ');
 
     return { isCorrect, userAnswersText, correctAnswersText };
   }
 
-  // Expose Math for template
   Math = Math;
 }
 

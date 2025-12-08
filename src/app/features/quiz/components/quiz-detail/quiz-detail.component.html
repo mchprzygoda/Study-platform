@@ -7,7 +7,7 @@
           <button
             (click)="router.navigate(['/quiz'])"
             class="text-blue-600 hover:text-blue-700 mb-2 text-sm font-medium">
-            ← Wróć do quizów
+              ← Back to quizzes
           </button>
           <h1 class="text-3xl font-bold text-gray-900">{{ subject()?.name }}</h1>
           <p class="text-gray-600 mt-1">{{ subject()?.subjectType }}</p>
@@ -36,12 +36,12 @@
     <div class="bg-blue-50 border-b border-blue-200 py-4">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="bg-white rounded-lg shadow-md p-6">
-          <h3 class="text-xl font-bold text-gray-900 mb-4">Konfiguracja Quizu</h3>
+          <h3 class="text-xl font-bold text-gray-900 mb-4">Quiz configuration</h3>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <!-- Number of Questions -->
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">
-                Liczba pytań
+                Number of questions
               </label>
               <input
                 type="number"
@@ -52,21 +52,21 @@
                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 [placeholder]="'Maksymalnie: ' + questions().length">
               <p class="text-sm text-gray-500 mt-1">
-                Dostępne pytania: {{ questions().length }}
+                Available questions: {{ questions().length }}
               </p>
             </div>
 
             <!-- Duration -->
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">
-                Czas trwania (minuty)
+                Duration (minutes)
               </label>
               <select
                 [value]="duration()"
                 (change)="duration.set(+($any($event.target).value))"
                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                 @for (option of getDurationOptions(); track option) {
-                  <option [value]="option">{{ option }} minut</option>
+                  <option [value]="option">{{ option }} minutes</option>
                 }
               </select>
             </div>
@@ -76,13 +76,13 @@
             <button
               (click)="toggleQuizStartPanel()"
               class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
-              Anuluj
+              Cancel
             </button>
             <button
               (click)="startQuiz()"
               [disabled]="questions().length === 0 || numberOfQuestions() > questions().length"
               class="px-6 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg transition-colors">
-              Rozpocznij Quiz
+              Start Quiz
             </button>
           </div>
         </div>
@@ -108,7 +108,7 @@
                         [class.text-blue-800]="question.type === 'single'"
                         [class.bg-green-100]="question.type === 'multiple'"
                         [class.text-green-800]="question.type === 'multiple'">
-                    {{ question.type === 'single' ? 'Jednokrotny wybór' : 'Wielokrotny wybór' }}
+                    {{ question.type === 'single' ? 'Single choice' : 'Multiple choice' }}
                   </span>
                 </div>
               </div>
@@ -116,12 +116,12 @@
                 <button
                   (click)="openQuestionModal(question)"
                   class="px-3 py-1 text-sm bg-blue-100 hover:bg-blue-200 text-blue-700 rounded transition-colors">
-                  Edytuj
+                  Edit
                 </button>
                 <button
-                  (click)="deleteQuestion(question)"
+                  (click)="onDeleteQuestion(question)"
                   class="px-3 py-1 text-sm bg-red-100 hover:bg-red-200 text-red-700 rounded transition-colors">
-                  Usuń
+                  Delete
                 </button>
               </div>
             </div>
@@ -159,7 +159,7 @@
                   </span>
                   @if (answer.isCorrect) {
                     <span class="px-2 py-1 text-xs font-semibold bg-green-500 text-white rounded">
-                      Poprawna
+                      Correct
                     </span>
                   }
                 </div>
@@ -170,11 +170,11 @@
       </div>
     } @else {
       <div class="text-center py-12 bg-white rounded-lg shadow-md">
-        <p class="text-gray-500 text-lg mb-4">Nie masz jeszcze żadnych pytań</p>
+        <p class="text-gray-500 text-lg mb-4">You don't have any questions yet</p>
         <button
           (click)="openQuestionModal()"
           class="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-          Dodaj pierwsze pytanie
+          Add first question
         </button>
       </div>
     }
@@ -186,29 +186,29 @@
   <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" (click)="closeQuestionModal()">
     <div class="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto" (click)="$event.stopPropagation()">
       <div class="p-6 border-b border-gray-200 sticky top-0 bg-white">
-        <h3 class="text-2xl font-bold text-gray-800">{{ isEditMode() ? 'Edytuj Pytanie' : 'Dodaj Nowe Pytanie' }}</h3>
+        <h3 class="text-2xl font-bold text-gray-800">{{ isEditMode() ? 'Edit Question' : 'Add New Question' }}</h3>
       </div>
       
       <form [formGroup]="questionForm" (ngSubmit)="saveQuestion()" class="p-6">
         <!-- Question Text -->
         <div class="mb-6">
           <label class="block text-sm font-medium text-gray-700 mb-2" for="questionText">
-            Pytanie *
+            Question *
           </label>
           <textarea
             id="questionText"
             formControlName="question"
             rows="3"
             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-            placeholder="Wpisz pytanie..."></textarea>
+            placeholder="Enter question..."></textarea>
           @if (questionForm.get('question')?.invalid && questionForm.get('question')?.touched) {
-            <p class="text-red-500 text-xs mt-1">Pytanie jest wymagane</p>
+            <p class="text-red-500 text-xs mt-1">Question is required</p>
           }
         </div>
 
         <!-- Question Type -->
         <div class="mb-6">
-          <label class="block text-sm font-medium text-gray-700 mb-2">Typ odpowiedzi *</label>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Answer type *</label>
           <div class="flex gap-4">
             <label class="flex items-center gap-2 cursor-pointer">
               <input
@@ -216,7 +216,7 @@
                 formControlName="type"
                 value="single"
                 class="w-4 h-4 text-blue-600">
-              <span class="text-gray-700">Jednokrotny wybór (radio)</span>
+              <span class="text-gray-700">Single choice (radio)</span>
             </label>
             <label class="flex items-center gap-2 cursor-pointer">
               <input
@@ -224,7 +224,7 @@
                 formControlName="type"
                 value="multiple"
                 class="w-4 h-4 text-blue-600">
-              <span class="text-gray-700">Wielokrotny wybór (checkbox)</span>
+              <span class="text-gray-700">Multiple choice (checkbox)</span>
             </label>
           </div>
         </div>
@@ -232,12 +232,12 @@
         <!-- Answers -->
         <div class="mb-6">
           <div class="flex items-center justify-between mb-4">
-            <label class="block text-sm font-medium text-gray-700">Odpowiedzi *</label>
+            <label class="block text-sm font-medium text-gray-700">Answers *</label>
             <button
               type="button"
               (click)="addAnswer()"
               class="px-3 py-1 text-sm bg-green-600 hover:bg-green-700 text-white rounded transition-colors">
-              + Dodaj odpowiedź
+              + Add answer
             </button>
           </div>
 
@@ -278,7 +278,7 @@
                   [value]="answerControl.value.text"
                   (input)="updateAnswerText(i, $any($event.target).value)"
                   class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Wpisz odpowiedź...">
+                  placeholder="Enter answer...">
 
                 <!-- Remove Answer Button -->
                 @if (answersFormArray.length > 2) {
@@ -286,14 +286,14 @@
                     type="button"
                     (click)="removeAnswer(i)"
                     class="px-3 py-2 text-red-600 hover:bg-red-50 rounded transition-colors">
-                    Usuń
+                    Delete
                   </button>
                 }
               </div>
             }
           </div>
           <p class="text-sm text-gray-500 mt-2">
-            Kliknij na ikonę {{ questionForm.get('type')?.value === 'single' ? 'kółka' : 'kwadratu' }}, aby oznaczyć poprawną odpowiedź
+            Click on the {{ questionForm.get('type')?.value === 'single' ? 'circle' : 'square' }} icon to mark the correct answer
           </p>
         </div>
 
@@ -303,17 +303,27 @@
             type="button"
             (click)="closeQuestionModal()"
             class="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
-            Anuluj
+            Cancel
           </button>
           <button
             type="submit"
             [disabled]="questionForm.invalid || answersFormArray.length < 2"
             class="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg transition-colors">
-            {{ isEditMode() ? 'Zaktualizuj Pytanie' : 'Dodaj Pytanie' }}
+            {{ isEditMode() ? 'Update Question' : 'Add Question' }}
           </button>
         </div>
       </form>
     </div>
   </div>
+}
+
+<!-- Delete Confirmation Modal -->
+@if (isDeleteConfirmModalOpen()) {
+  <app-confirm-delete-modal
+    [itemName]="questionToDelete()?.question || ''"
+    itemType="question"
+    (confirmed)="deleteQuestion()"
+    (cancelled)="closeDeleteConfirmModal()">
+  </app-confirm-delete-modal>
 }
 

@@ -9,6 +9,7 @@ import { QuizPage } from './page/quiz/quiz.page';
 import { QuizComponent } from './features/quiz/components/quiz-list/quiz.component';
 import { QuizDetailComponent } from './features/quiz/components/quiz-detail/quiz-detail.component';
 import { QuizTakeComponent } from './features/quiz/components/quiz-take/quiz-take.component';
+import { CalendarPage } from './page/calendar/calendar.page';
 
 export const routes: Routes = [
   {
@@ -31,7 +32,8 @@ export const routes: Routes = [
   },
   {
     path: 'subjects',
-    component: SubjectsPage
+    component: SubjectsPage,
+    canActivate: [authGuard]
   },
   {
     path: 'quiz',
@@ -48,10 +50,11 @@ export const routes: Routes = [
     component: QuizTakeComponent,
     canActivate: [authGuard]
   },
-  // {
-  //   path: 'calendar',
-  //   component: CalendarComponent
-  // },
+  {
+    path: 'calendar',
+    component: CalendarPage,
+    canActivate: [authGuard]
+  },
   {
     path: '**',
     redirectTo: 'auth'

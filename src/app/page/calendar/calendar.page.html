@@ -1,0 +1,47 @@
+<app-header></app-header>
+<div class="min-h-[calc(100vh-120px)] bg-gray-100 py-8 px-4">
+  <div class="max-w-7xl mx-auto flex flex-col gap-6 lg:grid lg:grid-cols-[1fr_2fr] lg:grid-rows-[auto_auto] lg:gap-6">
+    <!-- Event Form Panel at the top -->
+    <div class="w-full lg:col-start-1 lg:row-start-1">
+      <app-event-form
+        [selectedDate]="selectedDate()"
+        [editingEvent]="editingEvent()"
+        (eventAdded)="onEventAdded($event)"
+        (eventUpdated)="onEventUpdated($event)"
+      ></app-event-form>
+    </div>
+
+    <!-- Calendar in the middle -->
+    <div class="w-full lg:col-start-2 lg:row-span-2">
+      <app-calendar-view
+        [selectedDate]="selectedDate()"
+        [events]="events()"
+        (dateSelected)="onDateSelected($event)"
+        (monthChanged)="currentMonth.set($event)"
+      ></app-calendar-view>
+    </div>
+
+    <!-- Event List Panel at the bottom -->
+    <div class="w-full lg:col-start-1 lg:row-start-2">
+      <app-event-list
+        [events]="selectedDateEvents()"
+        [selectedDate]="selectedDate()"
+        (editEvent)="onEditEvent($event)"
+        (deleteEvent)="onEventDeleted($event)"
+      ></app-event-list>
+    </div>
+  </div>
+</div>
+
+<!-- Modal for day events -->
+@if (showModal() && selectedDate()) {
+  <app-event-modal
+    [selectedDate]="selectedDate()!"
+    [events]="selectedDateEvents()"
+    (close)="onModalClose()"
+    (editEvent)="onEditEvent($event)"
+    (deleteEvent)="onEventDeleted($event)"
+  ></app-event-modal>
+}
+<app-footer></app-footer>
+

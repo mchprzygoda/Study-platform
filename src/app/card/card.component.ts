@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, signal, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -19,17 +19,34 @@ export class CardComponent {
   @Output() delete = new EventEmitter<void>();
   @Output() cardClick = new EventEmitter<void>();
 
+  isMenuOpen = signal(false);
+
   onEditClick() {
     this.edit.emit();
+    this.isMenuOpen.set(false);
   }
 
   onDeleteClick() {
     this.delete.emit();
+    this.isMenuOpen.set(false);
   }
 
   onCardClick() {
-    if (this.clickable) {
+    if (this.clickable && !this.isMenuOpen()) {
       this.cardClick.emit();
+    }
+  }
+
+  toggleMenu(event: Event) {
+    event.stopPropagation();
+    this.isMenuOpen.update(value => !value);
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent) {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.menu-container')) {
+      this.isMenuOpen.set(false);
     }
   }
 }

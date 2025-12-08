@@ -14,8 +14,8 @@ export class FormNoteComponent {
 
   fb = new FormBuilder();
   form = this.fb.nonNullable.group({
-    title: ['', Validators.required],
-    content: ['', Validators.required],
+    title: ['', [Validators.required, Validators.minLength(1), Validators.maxLength(200)]],
+    content: ['', [Validators.required, Validators.maxLength(5000)]],
   });
 
   onSubmit() {

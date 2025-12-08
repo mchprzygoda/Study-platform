@@ -1,0 +1,73 @@
+@if (selectedDate) {
+  <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[1000] p-4" (click)="onBackdropClick($event)">
+    <div class="bg-white rounded-xl w-full max-w-2xl max-h-[80vh] flex flex-col shadow-2xl" (click)="$event.stopPropagation()">
+      <div class="flex justify-between items-center p-6 border-b border-gray-200">
+        <h2 class="m-0 text-2xl font-semibold text-gray-800">Events for {{ formattedDate() }}</h2>
+        <button 
+          class="bg-transparent border-0 cursor-pointer text-gray-500 p-2 rounded-md transition-all flex items-center justify-center hover:bg-gray-100 hover:text-gray-800"
+          (click)="closeModal()" 
+          aria-label="Close modal">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M18 6L6 18M6 6l12 12" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="p-6 overflow-y-auto flex-1">
+        @if (sortedEvents().length === 0) {
+          <div class="text-center py-12 text-gray-500">
+            <p class="m-0 text-base">No events for this day</p>
+          </div>
+        } @else {
+          <div class="flex flex-col gap-4">
+            @for (event of sortedEvents(); track event.id || event.eventName) {
+              <div class="flex justify-between items-center p-4 border border-gray-200 rounded-lg bg-white transition-all hover:shadow-md hover:border-blue-500">
+                <div class="flex-1 flex flex-col gap-2">
+                  <p class="m-0 text-base font-semibold text-gray-800">{{ event.eventName }}</p>
+                  <p class="m-0 text-sm text-gray-600">{{ event.description }}</p>
+                  <div class="text-sm text-gray-500">
+                    <span>{{ formatTime(event.startTime) }} - {{ formatTime(event.endTime) }}</span>
+                  </div>
+                </div>
+                
+                <div class="flex gap-2 ml-4">
+                  <button
+                    class="px-4 py-2 border-0 rounded-md text-sm font-medium cursor-pointer transition-all flex items-center gap-2 bg-gray-100 text-gray-700 hover:bg-gray-200 hover:text-gray-900"
+                    (click)="onEdit(event)"
+                    aria-label="Edit event"
+                  >
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor">
+                      <path d="M11 4H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7M14 1a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1zM9 9l4 4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    Edit
+                  </button>
+                  <button
+                    class="px-4 py-2 border-0 rounded-md text-sm font-medium cursor-pointer transition-all flex items-center gap-2 bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700"
+                    (click)="onDelete(event)"
+                    aria-label="Delete event"
+                  >
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor">
+                      <path d="M3 6h14M8 6V4a2 2 0 0 1 2-2h0a2 2 0 0 1 2 2v2m3 0v10a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14zM10 10v4M6 10v4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    Delete
+                  </button>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Delete Confirmation Modal -->
+@if (isDeleteConfirmModalOpen()) {
+  <app-confirm-delete-modal
+    [itemName]="eventToDelete()?.name || ''"
+    itemType="event"
+    (confirmed)="confirmDelete()"
+    (cancelled)="closeDeleteConfirmModal()">
+  </app-confirm-delete-modal>
+}
+

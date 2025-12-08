@@ -1,8 +1,8 @@
 <div class="min-h-screen bg-gray-50 py-8">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="mb-8">
-      <h1 class="text-4xl font-bold text-gray-900 mb-2">Quizy</h1>
-      <p class="text-gray-600">Wybierz przedmiot, aby zarządzać quizami i pytaniami</p>
+      <h1 class="text-4xl font-bold text-gray-900 mb-2">Quizzes</h1>
+      <p class="text-gray-600">Select a subject to manage quizzes and questions</p>
     </div>
 
     @if (subjects() && subjects()!.length > 0) {
@@ -17,7 +17,7 @@
                 <p class="text-gray-600 text-sm">{{ subject.subjectType }}</p>
               </div>
               <div class="mt-4 pt-4 border-t border-gray-200">
-                <span class="text-blue-600 font-medium text-sm">Zarządzaj quizami →</span>
+                <span class="text-blue-600 font-medium text-sm">Manage quizzes →</span>
               </div>
             </div>
           </button>
@@ -25,11 +25,11 @@
       </div>
     } @else {
       <div class="text-center py-12">
-        <p class="text-gray-500 text-lg mb-4">Nie masz jeszcze żadnych przedmiotów</p>
+        <p class="text-gray-500 text-lg mb-4">You don't have any subjects yet</p>
         <a 
           routerLink="/subjects"
           class="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-          Dodaj przedmiot
+          Add subject
         </a>
       </div>
     }

@@ -1,15 +1,15 @@
 export interface QuizConfig {
   subjectId: string;
   numberOfQuestions: number;
-  duration: number; // in minutes
+  duration: number;
 }
 
 export interface QuizSession {
   id?: string;
   subjectId: string;
-  questions: string[]; // question IDs
+  questions: string[];
   startTime: Date;
   endTime?: Date;
-  answers: { [questionId: string]: string[] }; // selected answer IDs
+  answers: { [questionId: string]: string[] };
 }
 

@@ -8,11 +8,12 @@ import { QuestionModel, AnswerOption } from '../../models/question.model';
 import { SubjectModel } from '../../../subject/subject.model';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Subscription, filter, first } from 'rxjs';
+import { ConfirmDeleteModalComponent } from '../../../../components/confirm-delete-modal/confirm-delete-modal.component';
 
 @Component({
   selector: 'app-quiz-detail',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, RouterModule, ConfirmDeleteModalComponent],
   templateUrl: './quiz-detail.component.html',
   styleUrls: ['./quiz-detail.component.scss']
 })
@@ -29,19 +30,18 @@ export class QuizDetailComponent implements OnInit, OnDestroy {
   subject = signal<SubjectModel | null>(null);
   questions = signal<QuestionModel[]>([]);
 
-  // Modal state
   isQuestionModalOpen = signal(false);
   isEditMode = signal(false);
   selectedQuestion = signal<QuestionModel | null>(null);
+  isDeleteConfirmModalOpen = signal(false);
+  questionToDelete = signal<QuestionModel | null>(null);
 
-  // Quiz start panel state
   isQuizStartPanelOpen = signal(false);
   numberOfQuestions = signal(5);
-  duration = signal(5); // in minutes
+  duration = signal(5);
 
-  // Form for question
   questionForm = this.fb.nonNullable.group({
-    question: ['', [Validators.required, Validators.minLength(1)]],
+    question: ['', [Validators.required, Validators.minLength(1), Validators.maxLength(500)]],
     type: ['single' as 'single' | 'multiple', Validators.required],
     answers: this.fb.array<FormControl<{ id: string; text: string; isCorrect: boolean }>>([])
   });
@@ -90,7 +90,6 @@ export class QuizDetailComponent implements OnInit, OnDestroy {
     return this.questionForm.get('answers') as FormArray;
   }
 
-  // Question modal methods
   openQuestionModal(question?: QuestionModel) {
     if (question) {
       this.isEditMode.set(true);
@@ -100,12 +99,10 @@ export class QuizDetailComponent implements OnInit, OnDestroy {
         type: question.type
       });
       
-      // Clear existing answers
       while (this.answersFormArray.length > 0) {
         this.answersFormArray.removeAt(0);
       }
       
-      // Add answers from question
       question.answers.forEach(answer => {
         this.answersFormArray.push(
           this.fb.control({
@@ -123,11 +120,9 @@ export class QuizDetailComponent implements OnInit, OnDestroy {
         type: 'single',
         answers: []
       });
-      // Clear answers array
       while (this.answersFormArray.length > 0) {
         this.answersFormArray.removeAt(0);
       }
-      // Add two default answers
       this.addAnswer();
       this.addAnswer();
     }
@@ -145,6 +140,11 @@ export class QuizDetailComponent implements OnInit, OnDestroy {
   }
 
   addAnswer() {
+    if (this.answersFormArray.length >= 6) {
+      alert('Maximum limit of 6 answers per question reached.');
+      return;
+    }
+    
     const answerControl = this.fb.control({
       id: this.generateId(),
       text: '',
@@ -160,6 +160,11 @@ export class QuizDetailComponent implements OnInit, OnDestroy {
   }
 
   updateAnswerText(index: number, text: string) {
+    if (text.length > 300) {
+      alert('Answer text cannot exceed 300 characters.');
+      return;
+    }
+    
     const answerControl = this.answersFormArray.at(index);
     const currentValue = answerControl.value;
     answerControl.patchValue({
@@ -174,7 +179,6 @@ export class QuizDetailComponent implements OnInit, OnDestroy {
     const questionType = this.questionForm.get('type')?.value;
     
     if (questionType === 'single') {
-      // For single choice, uncheck all others and check this one
       this.answersFormArray.controls.forEach((control, i) => {
         if (i === index) {
           control.patchValue({ ...control.value, isCorrect: true });
@@ -183,7 +187,6 @@ export class QuizDetailComponent implements OnInit, OnDestroy {
         }
       });
     } else {
-      // For multiple choice, just toggle this one
       answerControl.patchValue({
         ...currentValue,
         isCorrect: !currentValue.isCorrect
@@ -194,7 +197,12 @@ export class QuizDetailComponent implements OnInit, OnDestroy {
   async saveQuestion() {
     if (this.questionForm.invalid) return;
     if (this.answersFormArray.length < 2) {
-      alert('Musisz dodać przynajmniej 2 odpowiedzi');
+      alert('You need to add at least 2 answers');
+      return;
+    }
+
+    if (this.answersFormArray.length > 6) {
+      alert('Maximum 6 answers per question');
       return;
     }
 
@@ -208,15 +216,18 @@ export class QuizDetailComponent implements OnInit, OnDestroy {
       isCorrect: a.isCorrect
     }));
 
-    // Validate at least one correct answer
     if (!answers.some(a => a.isCorrect)) {
-      alert('Musisz zaznaczyć przynajmniej jedną poprawną odpowiedź');
+      alert('You need to select at least one correct answer');
       return;
     }
 
-    // Validate all answers have text
     if (answers.some(a => !a.text)) {
-      alert('Wszystkie odpowiedzi muszą mieć tekst');
+      alert('All answers must have text');
+      return;
+    }
+
+    if (answers.some(a => a.text.length < 1 || a.text.length > 300)) {
+      alert('Text of each answer must be between 1 and 300 characters');
       return;
     }
 
@@ -242,25 +253,36 @@ export class QuizDetailComponent implements OnInit, OnDestroy {
       this.closeQuestionModal();
     } catch (error) {
       console.error('Error saving question:', error);
-      alert('Wystąpił błąd podczas zapisywania pytania');
+      alert(error instanceof Error ? error.message : 'An error occurred while saving the question');
     }
   }
 
-  async deleteQuestion(question: QuestionModel) {
-    if (!confirm('Czy na pewno chcesz usunąć to pytanie?')) return;
+  onDeleteQuestion(question: QuestionModel) {
+    this.questionToDelete.set(question);
+    this.isDeleteConfirmModalOpen.set(true);
+  }
+
+  async deleteQuestion() {
+    const question = this.questionToDelete();
+    if (!question) return;
     
     const subjectId = this.subjectId();
     if (!subjectId || !question.id) return;
 
     try {
       await this.quizService.deleteQuestion(subjectId, question.id);
+      this.closeDeleteConfirmModal();
     } catch (error) {
       console.error('Error deleting question:', error);
-      alert('Wystąpił błąd podczas usuwania pytania');
+      alert('An error occurred while deleting the question');
     }
   }
 
-  // Quiz start panel methods
+  closeDeleteConfirmModal(): void {
+    this.isDeleteConfirmModalOpen.set(false);
+    this.questionToDelete.set(null);
+  }
+
   toggleQuizStartPanel() {
     this.isQuizStartPanelOpen.set(!this.isQuizStartPanelOpen());
   }
@@ -270,16 +292,15 @@ export class QuizDetailComponent implements OnInit, OnDestroy {
     if (!subjectId) return;
 
     if (this.questions().length === 0) {
-      alert('Brak pytań dla tego przedmiotu');
+      alert('No questions for this subject');
       return;
     }
 
     if (this.numberOfQuestions() > this.questions().length) {
-      alert(`Masz tylko ${this.questions().length} pytań. Wybierz mniejszą liczbę.`);
+      alert(`You only have ${this.questions().length} questions. Select a smaller number.`);
       return;
     }
 
-    // Navigate to quiz take component with parameters
     this.router.navigate(['/quiz', subjectId, 'take'], {
       queryParams: {
         questions: this.numberOfQuestions(),
@@ -301,4 +322,5 @@ export class QuizDetailComponent implements OnInit, OnDestroy {
     return Math.random().toString(36).substring(2, 15);
   }
 }
+
 

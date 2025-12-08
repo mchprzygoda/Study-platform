@@ -1,102 +1,104 @@
-# StudyPlatform
+# 📚 Study Platform
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 18.2.19.
+**Study Platform** is a web application for organizing study materials, quizzes, and schedules in one place.
 
-## 🚀 Deployment na GitHub Pages
+**Live demo**: https://mchprzygoda.github.io/Study-platform-test/
 
-### Automatyczne wdrożenie (ZALECANE) - GitHub Actions
+## Overview
 
-Projekt jest skonfigurowany z automatycznym workflow GitHub Actions, który wdraża aplikację przy każdym pushu do brancha `main` lub `master`.
+Study Platform helps students:
+- Organize subjects and courses
+- Take and manage study notes
+- Create and take practice quizzes
+- Manage schedules with calendar events
 
-#### Krok 1: Przygotowanie repozytorium
-
-1. **Upewnij się, że nazwa repozytorium na GitHubie jest zgodna z `baseHref` w `angular.json`**
-   - Obecnie `baseHref` jest ustawiony na `/Study-platform-test/`
-   - Nazwa repozytorium powinna być: `Study-platform-test`
-   - **LUB** zmień `baseHref` w `angular.json` na nazwę Twojego repozytorium (np. `/Study-platform/`)
-
-2. **Jeśli zmieniasz nazwę repozytorium**, zaktualizuj `baseHref`:
-   ```json
-   // w angular.json, linia 54
-   "baseHref": "/TwojaNazwaRepozytorium/"
-   ```
-
-#### Krok 2: Włącz GitHub Pages
-
-1. Przejdź do **Settings** w Twoim repozytorium GitHub
-2. W menu bocznym wybierz **Pages**
-3. W sekcji **Source** wybierz:
-   - **Source**: `GitHub Actions`
-   - **Branch**: (zostanie automatycznie wykryte)
-4. Kliknij **Save**
-
-#### Krok 3: Wypchnij kod
-
-```bash
-git add .
-git commit -m "Setup GitHub Pages deployment"
-git push origin main
-```
-
-#### Krok 4: Sprawdź status deployu
-
-1. Przejdź do zakładki **Actions** w Twoim repozytorium
-2. Zobacz workflow "Deploy to GitHub Pages"
-3. Po udanym deployu aplikacja będzie dostępna pod adresem:
-   ```
-   https://TwojaNazwaUzytkownika.github.io/Study-platform-test/
-   ```
+All data is securely stored and accessible only to you.
 
 ---
 
-### Alternatywa: Ręczne wdrożenie (opcjonalne)
+## Getting Started
 
-Jeśli chcesz wdrożyć ręcznie:
+**Note** You can create your own account or just use existing one.
+-- account for test perpouse --
+e-mail:
+password: 
 
-1. **Zainstaluj `angular-cli-ghpages`**:
-   ```bash
-   npm install --save-dev angular-cli-ghpages
-   ```
+### Registration
+1. Click **"Sign Up"**
+2. Fill in: Username, Email (format validation only), Password (min 8 characters)
+3. Click **"Register"** - you'll be automatically logged in
 
-2. **Uruchom deploy**:
-   ```bash
-   npm run deploy
-   ```
-
-   Ten skrypt zbuduje aplikację i automatycznie wypchnie ją do brancha `gh-pages`.
-
----
-
-## 🛠️ Development
-
-### Development server
-
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The application will automatically reload if you change any of the source files.
-
-### Code scaffolding
-
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
-
-### Build
-
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
-
-### Running unit tests
-
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
-
-### Running end-to-end tests
-
-Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To use this command, you need to first add a package that implements end-to-end testing capabilities.
+### Login
+1. Enter Email and Password
+2. Click **"Login"**
+3. Error message appears if credentials are incorrect
 
 ---
 
-## 📝 Uwagi
+## Features
 
-- **404.html**: Projekt automatycznie tworzy plik `404.html` podczas buildu (via `postbuild.js`), co jest wymagane dla poprawnych przekierowań w GitHub Pages z Angular Router
-- **Base Href**: Upewnij się, że `baseHref` w `angular.json` odpowiada nazwie Twojego repozytorium na GitHubie
-- **GitHub Pages Source**: Musisz użyć **GitHub Actions** jako źródła w ustawieniach Pages, nie brancha `gh-pages`
+### Subjects
+- Create, edit, and delete subjects
+- Click hamburger menu (⋮) in top-right corner to edit or delete
+- **Warning**: Deleting a subject also deletes all its notes and quizzes
+- **Limit**: 10 subjects per user
 
-## Further help
+### Notes
+- Create, edit, and delete notes for each subject
+- Click hamburger menu (⋮) on note cards for options
+- **Limits**: 
+  - 10 notes per subject
+  - Title: 1-200 characters
+  - Content: max 5000 characters
 
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+### Quizzes
+- Create questions (single or multiple choice)
+- Take quizzes and view results
+- **Limits**:
+  - 50 questions per subject
+  - 2-6 answers per question
+  - Question text: 1-500 characters
+  - Answer text: 1-300 characters
+
+### Calendar
+- Create, edit, and delete events
+- **Limits**:
+  - 200 events per user
+  - Event name: 1-200 characters
+  - Description: max 1000 characters
+
+---
+
+## Platform Limits
+
+| Feature | Limit |
+|---------|-------|
+| **User Accounts** | Limited (set by administrator) |
+| **Subjects** | 10 per user |
+| **Notes** | 10 per subject |
+| **Quiz Questions** | 50 per subject |
+| **Calendar Events** | 200 per user |
+
+> **Tip**: Delete old items to make room for new ones.
+
+---
+
+## Tech Stack
+
+- **Frontend**: Angular 18
+- **Backend**: Firebase (Authentication, Firestore)
+- **Security**: Firestore Security Rules, authenticated access
+- **Styling**: Tailwind CSS
+
+---
+
+## Security Notes
+
+- All user data is private and isolated per user
+- Writes restricted via Firestore Security Rules
+- Input validation and size limits enforced
+- Password must be at least 8 characters long
+
+---
+
+**Happy Studying! 📚**

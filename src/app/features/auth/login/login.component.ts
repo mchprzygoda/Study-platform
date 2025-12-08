@@ -29,15 +29,30 @@ export class LoginComponent {
   errorMessage: string | null = null;
 
   onSubmit(data: { email: string; password: string; username?: string }): void {
+    this.errorMessage = null;
+    
     this.authService
       .login(data.email, data.password)
       .subscribe({
         next: () => {
+          this.errorMessage = null;
           this.router.navigateByUrl('/');
         },
         error: (err) => {
-          this.errorMessage = err.code;
+          console.error('Login error:', err);
+          if (err.code === 'auth/user-not-found' || 
+              err.code === 'auth/wrong-password' || 
+              err.code === 'auth/invalid-credential' ||
+              err.code === 'auth/invalid-email') {
+            this.errorMessage = 'Wrong e-mail or password. Please try again';
+          } else {
+            this.errorMessage = 'Wrong e-mail or password. Please try again';
+          }
         },
       });
+  }
+
+  onErrorCleared(): void {
+    this.errorMessage = null;
   }
 }

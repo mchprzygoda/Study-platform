@@ -1,8 +1,6 @@
 <app-log-register-form
   [isLoginOpen]="true"
-  (formSubmitted)="onSubmit($event)">
+  [loginError]="errorMessage"
+  (formSubmitted)="onSubmit($event)"
+  (errorCleared)="onErrorCleared()">
 </app-log-register-form>
-
-@if (errorMessage) {
-  <div>{{ errorMessage }}</div>
-}

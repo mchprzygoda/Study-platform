@@ -1,0 +1,132 @@
+<div class="bg-white rounded-lg p-6 mb-6 shadow-md">
+  <h3 class="m-0 mb-4 text-xl font-semibold text-gray-800">Add New Event</h3>
+  
+  <form [formGroup]="eventForm" (ngSubmit)="onSubmit()" class="flex flex-col gap-4">
+    <div class="flex flex-col gap-2">
+      <label for="eventName" class="text-sm font-medium text-gray-700">Event Name</label>
+      <input
+        type="text"
+        id="eventName"
+        formControlName="eventName"
+        placeholder="Enter event name..."
+        class="px-3 py-2 border border-gray-300 rounded-md text-base transition-colors focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+      />
+    </div>
+
+    <div class="flex flex-col gap-2">
+      <label for="description" class="text-sm font-medium text-gray-700">Description</label>
+      <textarea
+        id="description"
+        formControlName="description"
+        placeholder="Enter event description..."
+        rows="2"
+        class="px-3 py-2 border border-gray-300 rounded-md text-base transition-colors resize-vertical min-h-[60px] focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+      ></textarea>
+    </div>
+
+    <div class="grid grid-cols-2 gap-4">
+      <div class="flex flex-col gap-2">
+        <label for="startTime" class="text-sm font-medium text-gray-700">Start Time</label>
+        <div class="flex items-center gap-2">
+          <input
+            type="time"
+            id="startTime"
+            formControlName="startTime"
+            title="Click on clock icon to select exact time"
+            class="flex-1 px-3 py-2 border-2 border-gray-300 rounded-md text-base transition-all focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 cursor-pointer hover:border-blue-400 hover:bg-blue-50 font-medium"
+          />
+          <div class="flex flex-col gap-0.5">
+            <button
+              type="button"
+              class="bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded px-2 py-1 cursor-pointer flex items-center justify-center text-gray-700 transition-all"
+              (click)="adjustTime('startTime', 1)"
+              title="Increase hour"
+              aria-label="Increase hour"
+            >
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M6 9V3M3 6l3-3 3 3" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+            <button
+              type="button"
+              class="bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded px-2 py-1 cursor-pointer flex items-center justify-center text-gray-700 transition-all"
+              (click)="adjustTime('startTime', -1)"
+              title="Decrease hour"
+              aria-label="Decrease hour"
+            >
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M6 3v6M3 6l3 3 3-3" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex flex-col gap-2">
+        <label for="endTime" class="text-sm font-medium text-gray-700">End Time</label>
+        <div class="flex items-center gap-2">
+          <input
+            type="time"
+            id="endTime"
+            formControlName="endTime"
+            title="Click on clock icon to select exact time"
+            class="flex-1 px-3 py-2 border-2 border-gray-300 rounded-md text-base transition-all focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 cursor-pointer hover:border-blue-400 hover:bg-blue-50 font-medium"
+          />
+          <div class="flex flex-col gap-0.5">
+            <button
+              type="button"
+              class="bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded px-2 py-1 cursor-pointer flex items-center justify-center text-gray-700 transition-all"
+              (click)="adjustTime('endTime', 1)"
+              title="Increase hour"
+              aria-label="Increase hour"
+            >
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M6 9V3M3 6l3-3 3 3" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+            <button
+              type="button"
+              class="bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded px-2 py-1 cursor-pointer flex items-center justify-center text-gray-700 transition-all"
+              (click)="adjustTime('endTime', -1)"
+              title="Decrease hour"
+              aria-label="Decrease hour"
+            >
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M6 3v6M3 6l3 3 3-3" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <button
+      type="submit"
+      [disabled]="!isFormValid"
+      class="px-6 py-3 border-0 rounded-md text-base font-medium cursor-pointer transition-all bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+    >
+      {{ isEditing() ? 'Update Event' : 'Add Event' }}
+    </button>
+
+    @if (isEditing()) {
+      <button
+        type="button"
+        (click)="resetForm()"
+        class="px-6 py-3 border-0 rounded-md text-base font-medium cursor-pointer transition-all bg-gray-600 text-white hover:bg-gray-700 mt-2"
+      >
+        Cancel
+      </button>
+    }
+  </form>
+
+  @if (selectedDate) {
+    <div class="mt-4 px-3 py-2 bg-blue-50 rounded-md text-sm">
+      <p>Selected date: <strong>{{ selectedDate | date:'fullDate' }}</strong></p>
+    </div>
+  } @else {
+    <div class="mt-4 px-3 py-2 bg-yellow-50 rounded-md text-sm text-yellow-800">
+      <p>Please select a date in the calendar to add an event</p>
+    </div>
+  }
+</div>
+

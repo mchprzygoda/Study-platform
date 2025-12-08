@@ -7,7 +7,7 @@
           <button
             (click)="exitQuiz()"
             class="text-gray-600 hover:text-gray-900 text-sm font-medium">
-            ← Wróć
+            ← Back
           </button>
           <h1 class="text-2xl font-bold text-gray-900 mt-1">{{ subject()?.name }} - Quiz</h1>
         </div>
@@ -26,7 +26,7 @@
             <button
               (click)="finishQuiz()"
               class="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors">
-              Zakończ Quiz
+              Finish Quiz
             </button>
           }
         </div>
@@ -40,7 +40,7 @@
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         <div class="flex items-center justify-between mb-2">
           <span class="text-sm font-medium text-gray-700">
-            Pytanie {{ currentQuestionIndex() + 1 }} z {{ totalQuestions() }}
+            Question {{ currentQuestionIndex() + 1 }} of {{ totalQuestions() }}
           </span>
           <span class="text-sm font-medium text-gray-700">
             {{ Math.round(getProgressPercentage()) }}%
@@ -87,7 +87,7 @@
                     [class.text-blue-800]="question.type === 'single'"
                     [class.bg-green-100]="question.type === 'multiple'"
                     [class.text-green-800]="question.type === 'multiple'">
-                {{ question.type === 'single' ? 'Jednokrotny wybór' : 'Wielokrotny wybór' }}
+                {{ question.type === 'single' ? 'Single choice' : 'Multiple choice' }}
               </span>
             </div>
             <h2 class="text-2xl font-bold text-gray-900">{{ question.question }}</h2>
@@ -128,13 +128,13 @@
                 (click)="previousQuestion()"
                 [disabled]="currentQuestionIndex() === 0"
                 class="px-6 py-2 bg-gray-200 hover:bg-gray-300 disabled:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-400 text-gray-700 rounded-lg font-medium transition-colors">
-                ← Poprzednie
+                ← Previous
               </button>
               <button
                 (click)="nextQuestion()"
                 [disabled]="currentQuestionIndex() === quizQuestions().length - 1"
                 class="px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-colors">
-                Następne →
+                Next →
               </button>
             </div>
           }
@@ -151,8 +151,8 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
             </svg>
           </div>
-          <h2 class="text-3xl font-bold text-gray-900 mb-2">Quiz zakończony!</h2>
-          <p class="text-gray-600">Twój wynik</p>
+          <h2 class="text-3xl font-bold text-gray-900 mb-2">Quiz finished!</h2>
+          <p class="text-gray-600">Your score</p>
         </div>
 
         <div class="mb-8">
@@ -169,23 +169,23 @@
 
         <!-- Detailed Results -->
         <div class="mt-8 text-left">
-          <h3 class="text-xl font-bold text-gray-900 mb-4">Szczegółowe wyniki:</h3>
+          <h3 class="text-xl font-bold text-gray-900 mb-4">Detailed results:</h3>
           <div class="space-y-4">
             @for (question of quizQuestions(); track question.id; let i = $index) {
               @if (getQuestionResult(question); as result) {
                 <div class="p-4 rounded-lg border-2" [class.border-green-500]="result.isCorrect" [class.bg-green-50]="result.isCorrect" [class.border-red-500]="!result.isCorrect" [class.bg-red-50]="!result.isCorrect">
                   <div class="flex items-start justify-between mb-2">
-                    <span class="font-semibold text-gray-900">Pytanie {{ i + 1 }}:</span>
+                    <span class="font-semibold text-gray-900">Question {{ i + 1 }}:</span>
                     @if (result.isCorrect) {
-                      <span class="px-2 py-1 bg-green-500 text-white text-xs font-semibold rounded">Poprawne</span>
+                      <span class="px-2 py-1 bg-green-500 text-white text-xs font-semibold rounded">Correct</span>
                     } @else {
-                      <span class="px-2 py-1 bg-red-500 text-white text-xs font-semibold rounded">Błędne</span>
+                      <span class="px-2 py-1 bg-red-500 text-white text-xs font-semibold rounded">Incorrect</span>
                     }
                   </div>
                   <p class="text-gray-800 mb-2">{{ question.question }}</p>
                   <div class="text-sm text-gray-600">
-                    <p><strong>Twoja odpowiedź:</strong> {{ result.userAnswersText }}</p>
-                    <p><strong>Poprawna odpowiedź:</strong> {{ result.correctAnswersText }}</p>
+                    <p><strong>Your answer:</strong> {{ result.userAnswersText }}</p>
+                    <p><strong>Correct answer:</strong> {{ result.correctAnswersText }}</p>
                   </div>
                 </div>
               }
@@ -197,7 +197,7 @@
           <button
             (click)="exitQuiz()"
             class="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors">
-            Wróć do quizów
+            Back to quizzes
           </button>
         </div>
       </div>

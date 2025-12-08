@@ -1,6 +1,6 @@
 import { inject, Injectable, signal } from "@angular/core";
 import { Auth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, updateProfile, user } from "@angular/fire/auth";
-import { Firestore, collection, doc, setDoc, getDoc } from "@angular/fire/firestore";
+import { Firestore, collection, doc, setDoc, getDoc, runTransaction } from "@angular/fire/firestore";
 import { from, map, Observable } from "rxjs";
 import { UserInterface } from "./user.interface";
 
@@ -28,23 +28,59 @@ export class AuthService {
   }
 
   register(email: string, username: string, password: string): Observable<void> {
-    const promise = createUserWithEmailAndPassword(
-      this.firebaseAuth, 
-      email, 
-      password
-    ).then(async (response) => {
-      // Aktualizuj profil użytkownika z username
-      await updateProfile(response.user, {displayName: username});
+    const promise = (async () => {
+      const statsDocRef = doc(this.firestore, '_stats/usersCount');
+      const statsDoc = await getDoc(statsDocRef);
       
-      // Zapisz dane użytkownika do kolekcji users w Firestore używając userId jako ID dokumentu
-      const userDocRef = doc(this.firestore, 'users', response.user.uid);
-      await setDoc(userDocRef, {
-        userId: response.user.uid,
-        username: username,
-        email: email
-      }, { merge: true }); // merge: true - jeśli dokument już istnieje, zaktualizuj tylko te pola
-    }).catch((error) => {
-      // Przekaż błąd dalej, żeby mógł być obsłużony w komponencie
+      if (!statsDoc.exists()) {
+        throw new Error('User limit configuration not found. Please contact administrator.');
+      }
+      
+      const stats = statsDoc.data();
+      const currentCount = stats?.['count'] ?? 0;
+      const maxUsers = stats?.['maxUsers'] ?? 10;
+      
+      if (currentCount >= maxUsers) {
+        throw new Error(`User limit reached. Maximum ${maxUsers} users allowed.`);
+      }
+      
+      const response = await createUserWithEmailAndPassword(
+        this.firebaseAuth, 
+        email, 
+        password
+      );
+      
+      try {
+        await updateProfile(response.user, {displayName: username});
+        
+        await runTransaction(this.firestore, async (transaction) => {
+          const statsSnapshot = await transaction.get(statsDocRef);
+          const currentStats = statsSnapshot.data();
+          
+          if (!currentStats || currentStats['count'] >= currentStats['maxUsers']) {
+            throw new Error(`User limit reached. Maximum ${currentStats?.['maxUsers']} users allowed.`);
+          }
+          
+          const userDocRef = doc(this.firestore, 'users', response.user.uid);
+          transaction.set(userDocRef, {
+            userId: response.user.uid,
+            username: username,
+            email: email
+          });
+          
+          transaction.update(statsDocRef, {
+            count: currentStats['count'] + 1
+          });
+        });
+      } catch (error) {
+        try {
+          await response.user.delete();
+        } catch (deleteError) {
+          console.error('Failed to delete user after transaction error:', deleteError);
+        }
+        throw error;
+      }
+    })().catch((error) => {
       console.error('Firebase registration error:', error);
       throw error;
     });
@@ -58,12 +94,10 @@ export class AuthService {
       email,
       password
     ).then(async (response) => {
-      // Sprawdź czy użytkownik istnieje w kolekcji users, jeśli nie - utwórz dokument
       const userDocRef = doc(this.firestore, 'users', response.user.uid);
       const userDoc = await getDoc(userDocRef);
       
       if (!userDoc.exists()) {
-        // Jeśli użytkownik nie istnieje w kolekcji users, utwórz dokument
         await setDoc(userDocRef, {
           userId: response.user.uid,
           username: response.user.displayName || '',

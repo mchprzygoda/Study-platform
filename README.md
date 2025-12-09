@@ -18,10 +18,10 @@ All data is securely stored and accessible only to you.
 
 ## Getting Started
 
-**Note** You can create your own account or just use existing one.
--- account for test perpouse --
-e-mail:
-password: 
+**Note:** You can create your own account or just use existing one.
+**Account for test purpose:**
+- e-mail: test2@test.com
+- password: tescik123
 
 ### Registration
 1. Click **"Sign Up"**

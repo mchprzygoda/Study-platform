@@ -56,7 +56,7 @@
                 }
               ],
               "outputHashing": "all",
-              "baseHref": "/Study-platform-test/"
+              "baseHref": "/Study-platform/"
             },
             "development": {
               "optimization": false,

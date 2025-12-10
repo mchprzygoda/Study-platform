@@ -23,17 +23,19 @@
             {{ event.index }}
           </div>
           
-          <div class="flex-1 flex flex-col gap-1 min-w-0">
-            <div class="flex items-center gap-2 flex-wrap">
+          <div class="flex-1 flex flex-col gap-1 min-w-0 min-h-0">
+            <div class="flex items-center gap-2 flex-wrap flex-shrink-0">
               <p class="m-0 text-base font-semibold text-gray-800">{{ event.eventName }}</p>
               @if (event.isPast) {
                 <span class="px-2 py-0.5 bg-orange-500 text-white text-xs font-semibold rounded-full uppercase">Past</span>
               }
             </div>
             @if (event.description) {
-              <p class="m-0 text-sm text-gray-600 overflow-hidden text-ellipsis whitespace-nowrap">{{ event.description }}</p>
+              <div class="max-h-20 overflow-y-auto min-h-0">
+                <p class="m-0 text-sm text-gray-600 whitespace-pre-wrap break-words">{{ event.description }}</p>
+              </div>
             }
-            <div class="text-sm text-gray-500">
+            <div class="text-sm text-gray-500 flex-shrink-0">
               <span>{{ formatTime(event.startTime) }} - {{ formatTime(event.endTime) }}</span>
             </div>
           </div>

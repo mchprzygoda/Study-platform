@@ -2,7 +2,7 @@
 
 **Study Platform** is a web application for organizing study materials, quizzes, and schedules in one place.
 
-**Live demo**: https://mchprzygoda.github.io/Study-platform-test/
+**Live demo**: https://mchprzygoda.github.io/Study-platform/
 
 ## Overview
 
